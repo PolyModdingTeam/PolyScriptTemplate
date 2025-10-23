@@ -1,0 +1,9 @@
+{
+    "id": "polyscripttemplate",
+    "name": "PolyScript Template",
+    "version": "1.0",
+    "authors": [
+        "Johnathan G. 'johnKlipi' Klipper"
+    ],
+    "description": "A template mod for polyscripts"
+}
