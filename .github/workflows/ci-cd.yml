@@ -1,0 +1,43 @@
+name: CI/CD
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  job:
+    permissions: write-all
+    name: CI/CD
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '6.0.x'
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: nuget-${{ hashFiles('**/*.csproj') }}
+    - name: Get project name
+      id: project
+      run: echo "name=$(basename -s .csproj *.csproj)" >> $GITHUB_OUTPUT
+    - name: Build
+      run: dotnet build -warnaserror -o mod
+    - name: Get version
+      if: github.event_name == 'workflow_dispatch'
+      id: version
+      uses: kzrnm/get-net-sdk-project-versions-action@v2
+      with:
+          proj-path: ${{ steps.project.outputs.name }}.csproj
+    - name: Pack release
+      if: github.event_name == 'workflow_dispatch'
+      run: |
+        cd mod
+        zip -r ../${{ steps.project.outputs.name }}.polymod .
+    - name: Deploy release
+      if: github.event_name == 'workflow_dispatch'
+      run: |
+        if [[ "${{ steps.version.outputs.version }}" == *"-"* ]]; then
+           gh release create v${{ steps.version.outputs.version }} ${{ steps.project.outputs.name }}.polymod -p -t v${{ steps.version.outputs.version }}
+        else
+           gh release create v${{ steps.version.outputs.version }} ${{ steps.project.outputs.name }}.polymod -t v${{ steps.version.outputs.version }}
+        fi
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
