@@ -14,4 +14,24 @@
     <ItemGroup>
         <PackageReference Include="PolyMod" Version="*" />
     </ItemGroup>
+
+    <Import Project="local.props" Condition="Exists('local.props')" />
+
+    <Target Name="DeployMod" AfterTargets="Build" Condition="'$(ModsDir)' != ''">
+        <PropertyGroup>
+            <ModName Condition="'$(ModName)' == ''">$(AssemblyName)</ModName>
+            <ModDir>$(ModsDir)\$(ModName)</ModDir>
+        </PropertyGroup>
+        <ItemGroup>
+            <ModFiles Include="Mod\**\*" />
+        </ItemGroup>
+
+        <Error Condition="!Exists('$(ModsDir)')" Text="ModsDir not found: $(ModsDir)" />
+        <RemoveDir Directories="$(ModDir)" />
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModDir)" />
+        <Copy SourceFiles="@(ModFiles)" DestinationFolder="$(ModDir)\%(RecursiveDir)" />
+
+        <Exec Condition="'$(LaunchGame)' == 'steam'" Command="start steam://rungameid/874390" />
+        <Exec Condition="'$(LaunchGame)' == 'epic'" Command="start &quot;&quot; &quot;com.epicgames.launcher://apps/c28a4972ae574f27af0304e6ac625009%25%253A8325b3ee3dfa48feb553fbe3175d3971%25%253A3ce838d7a25c49368a22918b56e88f2a?action=launch&amp;silent=true&quot;" />
+    </Target>
 </Project>

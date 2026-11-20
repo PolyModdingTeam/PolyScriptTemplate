@@ -1,0 +1,39 @@
+name: CI/CD
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  build:
+    name: CI/CD
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '6.0.x'
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: nuget-${{ hashFiles('**/*.csproj') }}
+    - name: Get project info
+      id: project
+      run: |
+        echo "name=$(basename -s .csproj *.csproj)" >> $GITHUB_OUTPUT
+        echo "version=$(jq -r .version Mod/manifest.json)" >> $GITHUB_OUTPUT
+    - name: Build
+      run: dotnet build -c Release -warnaserror
+    - name: Pack
+      run: |
+        cp bin/Release/net6.0/${{ steps.project.outputs.name }}.dll Mod/
+        cd Mod
+        zip -r -D ../${{ steps.project.outputs.name }}.polymod .
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ${{ steps.project.outputs.name }}
+        path: ${{ steps.project.outputs.name }}.polymod
+    - name: Release
+      if: github.event_name == 'workflow_dispatch'
+      run: gh release create v${{ steps.project.outputs.version }} ${{ steps.project.outputs.name }}.polymod -t v${{ steps.project.outputs.version }}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

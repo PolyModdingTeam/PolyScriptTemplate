@@ -1,0 +1,13 @@
+<!-- Your own build settings. Copy this file to local.props (git ignores it) and edit it. -->
+<Project>
+  <PropertyGroup>
+    <!-- The game's Mods folder. After each build, the mod is copied to a folder in it. Empty: no copy. -->
+    <ModsDir>C:\Program Files (x86)\Steam\steamapps\common\The Battle of Polytopia\Mods</ModsDir>
+
+    <!-- Start the game after the copy: steam, epic, or empty for no start. -->
+    <LaunchGame>steam</LaunchGame>
+
+    <!-- Name of the mod's folder in ModsDir. Empty: the project name. -->
+    <ModName>template</ModName>
+  </PropertyGroup>
+</Project>
